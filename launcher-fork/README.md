@@ -6,8 +6,10 @@ Sinkon ships as one Gradle module plus a patch against
 
 * `patches/0001-register-sinkon-renderers.patch` — a real `git diff` generated
   against `v3_openjdk` (verified to reverse-apply cleanly against that revision).
-* `app_mojo/.../impl/SinkonRenderSpecs.kt` — `SinkonVulkanRendererSpec`,
-  `SinkonGLRendererSpec`, `SinkonAutoRendererSpec`.
+* `app_mojo/.../impl/SinkonRenderSpec.kt` — shared base (`backendHint()`, `badge()`,
+  `createSession()`, `setupRenderer()` that does *not* call `MojoExec.prepareEgl`).
+* `app_mojo/.../impl/SinkonVulkanRendererSpec.kt`,
+  `SinkonGLRendererSpec.kt`, `SinkonAutoRendererSpec.kt` — the three renderers.
 * `app_mojo/.../impl/SinkonSurfaceBridge.kt` — surface lifecycle → `SinkonSession`.
 * `app_mojo/src/main/res/values/strings_sinkon.xml` — renderer names.
 
@@ -25,7 +27,7 @@ can be reviewed without opening a diff.
 | `GameView.java` | + 3 one-line hooks: `onSurfaceAvailable`, `onSurfaceResized`, `onSurfaceDestroyed` → `SinkonSurfaceBridge` |
 | `app_mojo/build.gradle` | + `org.jetbrains.kotlin.android` plugin, + `kotlinOptions`, + `implementation project(":sinkon-native")` |
 | `settings.gradle` | + `include ':sinkon-native'` with `projectDir = file('sinkon-native')` |
-| new files | the three specs, the surface bridge, `SinkonRenderSpecs.kt`, `strings_sinkon.xml` |
+| new files | `SinkonRenderSpec.kt`, the three specs, `SinkonSurfaceBridge.kt`, `strings_sinkon.xml` |
 
 Nothing else in the launcher is touched: `compatibleDevice()` keeps Sinkon out of the
 picker on devices that cannot run it, and every bridge call is a no-op unless
