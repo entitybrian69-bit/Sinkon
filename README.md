@@ -33,7 +33,8 @@ without Gradle and without a GPU**, so:
 * no performance number has been measured — every measured cell in
   `docs/PERFORMANCE.md` reads `NOT MEASURED — reason: …`.
 
-Nothing is faked to hide that: `docs/KNOWN_ISSUES.md` lists every gap with the
+Nothing is faked to hide that: `SINKON_STATUS.md` summarises the state per backend
+and `docs/KNOWN_ISSUES.md` lists every gap with the
 reason and the work needed to close it, and `docs/BACKEND_MATRIX.md`,
 `docs/SHADER_MATRIX.md`, `docs/VERSION_MATRIX.md` mark every single cell as
 *verified* / *best-effort* / *known-broken* accordingly.
@@ -141,7 +142,10 @@ report (`.github/workflows/perf-gate-ci.yml`).
 | `docs/BACKEND_MATRIX.md` | feature × backend support, legacy-path limits |
 | `docs/SHADER_MATRIX.md` | BSL / Complementary (Reimagined + Unbound) / SEUS PTGI / Sildur's / Chocapic13 / MakeUp / Rethinking Voxels |
 | `docs/VERSION_MATRIX.md` | Alpha → 1.21 + snapshots × backend |
-| `docs/KNOWN_ISSUES.md` | 15 numbered issues with impact, reason and close condition |
+| `docs/KNOWN_ISSUES.md` | 16 numbered issues with impact, reason and close condition |
+| `KNOWN_ISSUES.md` | flat index of the same 16 issues, for readers of the repository root |
+| `SINKON_STATUS.md` | built / works / best-effort / known-broken per backend, one page |
+| `logo/BRAND.md` | palette, glyph geometry, clear-space rules, file inventory |
 
 ## Logo
 

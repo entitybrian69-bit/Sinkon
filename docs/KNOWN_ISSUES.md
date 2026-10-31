@@ -42,9 +42,14 @@ not type errors, borrow errors or missing symbols.
 review step. The most likely failure classes are wgpu 22 API drift and Naga option
 fields; the code was written against the wgpu 22.1.0 / naga 22.1.0 sources.
 
+**Also not run:** `shellcheck` (same missing-tooling reason). `scripts/perf-gate.sh`
+is written to POSIX sh rules (quoted expansions, `[ ]` tests, no bash arrays) and
+was exercised end-to-end with a stub `cargo`, but it has not been linted by
+`shellcheck`.
+
 **Closes with:** `cargo check --all-targets`, `cargo test`,
-`cargo clippy --all-targets -- -D warnings`, then `./gradlew assembleDebug` in the
-fork.
+`cargo clippy --all-targets -- -D warnings`, `cargo fmt --all`,
+`shellcheck scripts/*.sh`, then `./gradlew assembleDebug` in the fork.
 
 ---
 
