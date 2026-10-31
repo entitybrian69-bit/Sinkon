@@ -1,0 +1,83 @@
+# Builds a debug APK of the Sinkon harness app and publishes it as an artifact.
+#
+# This is the shortest path to an installable APK:
+#   1. scripts/build-android.sh → libsinkon.so for arm64-v8a / armeabi-v7a / x86_64
+#   2. :sample:assembleDebug    → org.sinkon.sample debug APK
+#
+# Artifacts are downloadable from the workflow run page; pushing a `v*` tag also
+# attaches the APK to a GitHub Release, which yields a stable download URL.
+name: apk
+
+on:
+  push:
+    branches: [main, "arena/**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-apk:
+    name: libsinkon.so + sample APK
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust with Android targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
+
+      - name: Cache cargo registry + target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-apk-${{ hashFiles('**/Cargo.toml', 'rust-toolchain.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-apk-
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --locked
+
+      - name: Build libsinkon.so (all ABIs)
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
+        run: ./scripts/build-android.sh
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      # The repository ships gradle-wrapper.properties but no wrapper jar, so the
+      # gradle binary from setup-gradle is used instead of ./gradlew.
+      - name: Assemble the sample APK
+        run: gradle -p android :sample:assembleDebug --no-daemon --stacktrace
+
+      - name: Upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: sinkon-sample-apk
+          path: android/sample/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach the APK to a release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/sample/build/outputs/apk/debug/*.apk
+          generate_release_notes: true

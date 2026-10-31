@@ -24,6 +24,7 @@ Nothing in this repository is a bare `TODO`: if it is unfinished, it is listed h
 | SINKON-014 | minor | GLES 3.x has no pipeline-cache persistence (platform limitation), logged once | `docs/BACKEND_MATRIX.md` |
 | SINKON-015 | by design | Android only, no iOS; no Mojang assets, no auth code | repository-wide |
 | SINKON-016 | major | Chunk pool slot sizes (96 KiB vertex / 48 KiB index) are a design estimate; oversized sections are skipped and counted | `src/renderer.rs`, `docs/KNOWN_ISSUES.md` §016 |
+| SINKON-017 | minor | The sample APK (`android/sample`) is a JNI smoke-test harness, not a launcher build; never compiled here | `android/sample`, `.github/workflows/build-apk.yml` |
 
 Unimplemented combinations are additionally tracked per cell in
 [`docs/BACKEND_MATRIX.md`](docs/BACKEND_MATRIX.md),

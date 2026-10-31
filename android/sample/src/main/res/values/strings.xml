@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sample_app_name">Sinkon (sample)</string>
+    <string name="sample_starting">Sinkon sample: waiting for the surface…</string>
+    <string name="sample_library_missing">libsinkon.so could not be loaded:\n%1$s</string>
+    <string name="sample_attach_failed">Sinkon could not create a backend — see logcat (tag Sinkon).</string>
+</resources>

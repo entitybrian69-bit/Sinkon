@@ -159,6 +159,10 @@ struct ChunkManager {
     uploads: u64,
     dropped_overflow: u64,
     dropped_queue_full: u64,
+    /// The legacy `glow` backend always reads a 24-byte vertex, so `Packed4`
+    /// sections are re-meshed into the 24-byte layout instead of being uploaded
+    /// in a format it cannot describe.
+    force_stride24: bool,
 }
 
 impl ChunkManager {
@@ -198,10 +202,16 @@ impl ChunkManager {
             uploads: 0,
             dropped_overflow: 0,
             dropped_queue_full: 0,
+            force_stride24: backend.kind() == BackendKind::Gles2Legacy,
         })
     }
 
     fn queue(&mut self, key: SectionKey, blocks: Vec<u8>, format: MeshFormat) {
+        let format = if self.force_stride24 && format == MeshFormat::Packed4 {
+            MeshFormat::Custom(24)
+        } else {
+            format
+        };
         let generation = self.generation;
         self.generation = self.generation.wrapping_add(1);
         let job = MeshJob {
@@ -642,60 +652,87 @@ impl SinkonRenderer {
         };
         let kind = backend.kind();
 
-        let (shader_key, stride_4, stride_8) = match kind {
+        // One shader pair per vertex layout: index 0 = 20-byte `Packed4`
+        // (position + uv), index 1 = 24-byte `Packed8`/`Custom` (position + uv +
+        // unorm8 colour). Declaring the colour attribute for a 20-byte buffer
+        // would make wgpu reject the pipeline, and the legacy backend always
+        // consumes the 24-byte layout (see `ChunkManager::force_stride24`).
+        let mut shader_keys: [ShaderKey; FORMAT_SLOTS] = [ShaderKey(0); FORMAT_SLOTS];
+        let strides: [u64; FORMAT_SLOTS];
+        match kind {
             BackendKind::Vulkan | BackendKind::Gles3 => {
-                let mut vertex_words = Vec::new();
-                let mut fragment_words = Vec::new();
-                let stages = [
-                    (shader::builtin::TERRAIN_VERTEX, ShaderStage::Vertex),
-                    (shader::builtin::TERRAIN_FRAGMENT, ShaderStage::Fragment),
+                strides = [20, 24];
+                let pairs = [
+                    (
+                        shader::builtin::TERRAIN_VERTEX_PACKED4,
+                        shader::builtin::TERRAIN_FRAGMENT_PACKED4,
+                        ShaderKey(3),
+                        ShaderKey(4),
+                    ),
+                    (
+                        shader::builtin::TERRAIN_VERTEX,
+                        shader::builtin::TERRAIN_FRAGMENT,
+                        ShaderKey(1),
+                        ShaderKey(2),
+                    ),
                 ];
-                for (source, stage) in stages {
-                    let words = match shader::translate(source, stage, ShaderTarget::SpirV) {
-                        Ok(shader::TranslatedCode::SpirV(words)) => words,
-                        Ok(_) => {
-                            log::error!("built-in shader produced non-SPIR-V output");
-                            return;
-                        }
-                        Err(err) => {
-                            log::error!("built-in {stage:?} shader failed: {err}");
-                            self.shader_errors.push(format!("builtin {stage:?}: {err}"));
-                            return;
-                        }
-                    };
-                    if stage == ShaderStage::Vertex {
-                        vertex_words = words;
-                    } else {
-                        fragment_words = words;
-                    }
-                }
-                if backend
-                    .create_shader(ShaderKey(1), ShaderCode::SpirV(&vertex_words))
-                    .is_err()
-                    || backend
-                        .create_shader(ShaderKey(2), ShaderCode::SpirV(&fragment_words))
-                        .is_err()
+                for (index, (vertex_src, fragment_src, vertex_key, fragment_key)) in
+                    pairs.into_iter().enumerate()
                 {
-                    log::error!("backend rejected the built-in shaders");
-                    return;
+                    let mut words: [Vec<u32>; 2] = [Vec::new(), Vec::new()];
+                    let stages = [
+                        (vertex_src, ShaderStage::Vertex),
+                        (fragment_src, ShaderStage::Fragment),
+                    ];
+                    let mut failed = false;
+                    for (slot, (source, stage)) in stages.into_iter().enumerate() {
+                        match shader::translate(source, stage, ShaderTarget::SpirV) {
+                            Ok(shader::TranslatedCode::SpirV(spirv)) => words[slot] = spirv,
+                            Ok(_) => {
+                                log::error!("built-in shader produced non-SPIR-V output");
+                                failed = true;
+                            }
+                            Err(err) => {
+                                log::error!("built-in {stage:?} shader failed: {err}");
+                                self.shader_errors
+                                    .push(format!("builtin {stage:?} (layout {index}): {err}"));
+                                failed = true;
+                            }
+                        }
+                    }
+                    if failed {
+                        return;
+                    }
+                    if backend
+                        .create_shader(vertex_key, ShaderCode::SpirV(&words[0]))
+                        .is_err()
+                        || backend
+                            .create_shader(fragment_key, ShaderCode::SpirV(&words[1]))
+                            .is_err()
+                    {
+                        log::error!("backend rejected the built-in shaders");
+                        return;
+                    }
+                    shader_keys[index] = vertex_key;
+                    log::info!(
+                        "built-in terrain layout {index} ({} B stride) → SPIR-V ({} vertex / {} fragment words)",
+                        strides[index],
+                        words[0].len(),
+                        words[1].len()
+                    );
                 }
-                log::info!(
-                    "built-in terrain shader → SPIR-V ({} vertex words, {} fragment words)",
-                    vertex_words.len(),
-                    fragment_words.len()
-                );
-                (ShaderKey(1), 20u64, 24u64)
             }
             BackendKind::Gles2Legacy => {
                 // The legacy backend compiles its own ES 1.00 program pair; the key
-                // selects textured + coloured + unlit terrain.
+                // selects textured + coloured + fog-free terrain at a 24-byte stride.
                 let key = crate::backend::gles2_legacy::LegacyKey::new(true, true, false, false);
-                (ShaderKey(u32::from(key.0)), 20u64, 24u64)
+                shader_keys = [ShaderKey(u32::from(key.0)); FORMAT_SLOTS];
+                strides = [24, 24];
             }
-        };
+        }
 
         for index in 0..FORMAT_SLOTS {
-            let stride = if index == 0 { stride_4 } else { stride_8 };
+            let stride = strides[index];
             let mut desc = PipelineDesc {
                 label: "sinkon.terrain",
                 vertex_entry: "main",
@@ -706,7 +743,7 @@ impl SinkonRenderer {
                 topology: Topology::TriangleList,
                 vertex_stride: stride,
                 layout: LayoutId(0),
-                shader: shader_key,
+                shader: shader_keys[index],
             };
             desc.label = if index == 0 {
                 "sinkon.terrain.packed4"

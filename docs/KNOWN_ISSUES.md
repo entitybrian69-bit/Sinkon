@@ -264,3 +264,25 @@ slots hold — the pool is a cache with LRU eviction, not a guarantee.
 `ChunkManager::drain`), then either per-slot growth (create a larger buffer on
 demand, counting the extra `create_buffer` outside the steady-state budget) or a
 size-class pool (small/medium/large slots).
+
+---
+
+## SINKON-017 — The sample APK is a harness, not a launcher build (minor)
+
+**What:** `android/sample` builds `org.sinkon.sample`, a single-activity app that
+creates a `SurfaceView`, pushes nine synthetic 16³ sections and orbits a camera. It
+exists so `libsinkon.so` can be smoke-tested on a phone without MojoLauncher.
+
+**Why it is not the product:** it draws Sinkon's built-in terrain shader instead of
+Minecraft, has no world data from a real game (SINKON-006), no shaderpack pass graph
+(SINKON-004) and no launcher UI. It also cannot be built in the sandbox that produced
+this repository (no JDK/Gradle/NDK), so its first real compile is
+`.github/workflows/build-apk.yml`.
+
+**How it still helps:** it exercises the exact JNI surface a launcher uses
+(`nativeInit` → `nativeSetCamera`/`nativeBakeSection` → `nativeRenderFrame` →
+`nativeDestroy`), and it prints `nativeGetCapabilityReport` / `nativeGetPerfStats`
+into an on-screen HUD, so a device gives real answers to SINKON-001.
+
+**Closes with:** running the workflow once, installing the artifact and recording the
+HUD output per backend.

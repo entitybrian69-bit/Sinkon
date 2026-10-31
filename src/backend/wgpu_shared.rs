@@ -417,11 +417,30 @@ impl GraphicsBackend for WgpuBackend {
             .shaders
             .get(&desc.shader)
             .ok_or_else(|| BackendError::Unsupported(format!("missing shader {:?}", desc.shader)))?;
-        let vertex_attributes = [wgpu::VertexAttribute {
+        // Chunk vertex layout, matching `src/chunk.rs::push_face`:
+        //   pos f32x3 @0, uv f32x2 @12, [colour unorm8x4 @20 when stride >= 24].
+        // Declaring a location the buffer does not contain makes wgpu reject the
+        // pipeline, so the attribute list follows the stride exactly.
+        let mut vertex_attributes: Vec<wgpu::VertexAttribute> = Vec::with_capacity(3);
+        vertex_attributes.push(wgpu::VertexAttribute {
             format: wgpu::VertexFormat::Float32x3,
             offset: 0,
             shader_location: 0,
-        }];
+        });
+        if desc.vertex_stride >= 20 {
+            vertex_attributes.push(wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32x2,
+                offset: 12,
+                shader_location: 1,
+            });
+        }
+        if desc.vertex_stride >= 24 {
+            vertex_attributes.push(wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Unorm8x4,
+                offset: 20,
+                shader_location: 2,
+            });
+        }
         let buffers = [wgpu::VertexBufferLayout {
             array_stride: desc.vertex_stride,
             step_mode: wgpu::VertexStepMode::Vertex,

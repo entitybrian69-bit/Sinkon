@@ -79,6 +79,30 @@ docs/               ARCHITECTURE, JNI, PERFORMANCE, BACKEND/SHADER/VERSION matri
 logo/               source SVGs, render.sh, PNG set, store icon
 ```
 
+## Get an APK
+
+**No APK is committed to this repository** — nothing here was compiled (see the
+status box above: no JDK, Gradle, NDK or Rust toolchain in the build sandbox). Two
+ways to get one, both from this tree:
+
+1. **CI (recommended).** Push this branch; `.github/workflows/build-apk.yml` builds
+   `libsinkon.so` for all three ABIs, assembles `:sample:assembleDebug` and uploads
+   **`sinkon-sample-apk`** as a workflow artifact — that artifact is the download
+   link. Pushing a `v*` tag additionally attaches the APK to a GitHub Release, which
+   gives a stable public URL.
+2. **Locally** (needs JDK 17, Android SDK, NDK r26+, Rust + `cargo-ndk`):
+
+   ```sh
+   ./scripts/build-android.sh
+   cd android && gradle :sample:assembleDebug
+   adb install -r sample/build/outputs/apk/debug/sample-debug.apk
+   adb shell am start -n org.sinkon.sample/.MainActivity --ei backend 1   # 0 auto, 1 Vulkan, 2 GLES3, 3 GLES2
+   ```
+
+`android/sample` is a **debug harness**, not the launcher: it pushes synthetic
+sections and shows the capability/perf JSON on screen (SINKON-017). The real APK is
+the MojoLauncher fork build in `launcher-fork/`.
+
 ## Build
 
 ### Native library (all three ABIs)

@@ -24,3 +24,7 @@ rootProject.name = "sinkon-android"
 
 include(":sinkon-native")
 project(":sinkon-native").projectDir = file("app")
+
+// Debug harness app: builds a small APK that drives libsinkon.so on a
+// SurfaceView, so the pipeline can be smoke-tested without a launcher fork.
+include(":sample")
