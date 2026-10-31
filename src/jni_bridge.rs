@@ -303,7 +303,12 @@ pub extern "system" fn Java_org_sinkon_launcher_Sinkon_nativeRenderFrame(
         let Some(handle) = (unsafe { handle(ctx, "nativeRenderFrame") }) else {
             return;
         };
-        if let Err(err) = handle.renderer.render_frame() {
+        let started = std::time::Instant::now();
+        let result = handle.renderer.render_frame();
+        handle
+            .renderer
+            .record_jni_call(started.elapsed().as_nanos().min(u128::from(u64::MAX)) as u64);
+        if let Err(err) = result {
             log_error("nativeRenderFrame", err);
         }
     });
@@ -411,7 +416,9 @@ pub extern "system" fn Java_org_sinkon_launcher_Sinkon_nativeSetCamera(
             }
         };
         handle.renderer.set_camera(&view_matrix, &proj_matrix);
-        log::trace!("nativeSetCamera took {} ns", started.elapsed().as_nanos());
+        let elapsed = started.elapsed().as_nanos().min(u128::from(u64::MAX)) as u64;
+        handle.renderer.record_jni_call(elapsed);
+        log::trace!("nativeSetCamera took {elapsed} ns");
     });
 }
 
@@ -576,7 +583,10 @@ pub extern "system" fn Java_org_sinkon_launcher_Sinkon_nativeSwitchBackend(
 
 /// Library load hook: configure logging as early as possible.
 #[no_mangle]
-pub extern "system" fn JNI_OnLoad(_vm: *mut jni::sys::JavaVM, _reserved: *mut jni::sys::jint) -> jint {
+pub extern "system" fn JNI_OnLoad(
+    _vm: *mut jni::sys::JavaVM,
+    _reserved: *mut std::ffi::c_void,
+) -> jint {
     crate::init_logging(log::LevelFilter::Info);
     log::info!("libsinkon.so loaded (Sinkon {})", crate::VERSION);
     JNI_VERSION_1_6

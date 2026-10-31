@@ -485,6 +485,14 @@ impl SinkonRenderer {
         self.camera.position = [view[3][0], view[3][1], view[3][2]];
     }
 
+    /// Record one JNI crossing duration so `PerfSnapshot::jni_mean_ns` is real.
+    ///
+    /// Called by the bridge around `nativeSetCamera` and `nativeRenderFrame`; it
+    /// only touches atomics, so it is safe on the frame path.
+    pub fn record_jni_call(&self, nanos: u64) {
+        self.perf.jni_call(nanos);
+    }
+
     /// Queue one chunk section for meshing + upload.
     pub fn bake_section(
         &mut self,
