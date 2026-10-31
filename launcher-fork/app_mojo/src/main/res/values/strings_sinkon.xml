@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sinkon renderer strings (patch 0001). Merge into values/ of app_mojo. -->
+<resources>
+    <string name="sinkon_renderer_vulkan">Sinkon (Vulkan)</string>
+    <string name="sinkon_renderer_gl">Sinkon (OpenGL)</string>
+    <string name="sinkon_renderer_auto">Sinkon (Auto)</string>
+    <string name="sinkon_renderer_vulkan_desc">Sinkon dual-backend renderer, Vulkan path</string>
+    <string name="sinkon_renderer_gl_desc">Sinkon dual-backend renderer, OpenGL ES path</string>
+    <string name="sinkon_renderer_auto_desc">Sinkon dual-backend renderer, picks the best backend at start</string>
+</resources>

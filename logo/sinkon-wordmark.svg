@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1480" height="380" viewBox="0 0 1480 380" role="img" aria-label="Sinkon wordmark">
+  <title>sinkon-wordmark</title>
+  <desc>Hand-drawn monoline Sinkon letterforms; geometry only, no font or text element.</desc>
+  <defs>
+    <linearGradient id="sinkonWordS" x1="53" y1="40" x2="236" y2="310" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0EA5E9"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0 8)" fill="none" stroke-width="46" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M214 63 H132 A56 56 0 0 0 132 175 H180 A56 56 0 0 1 180 287 H98" stroke="url(#sinkonWordS)"/>
+    <path d="M343 40 V310" stroke="#F1F5F9"/>
+    <path d="M453 310 V40 L606 310 V40" stroke="#F1F5F9"/>
+    <path d="M723 40 V310" stroke="#F1F5F9"/>
+    <path d="M900 40 L740 175 L900 310" stroke="#F1F5F9"/>
+    <ellipse cx="1075" cy="175" rx="100" ry="112" stroke="#F1F5F9"/>
+    <path d="M1253 310 V40 L1406 310 V40" stroke="#F1F5F9"/>
+  </g>
+</svg>

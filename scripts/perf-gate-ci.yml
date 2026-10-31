@@ -1,0 +1,104 @@
+# Sinkon performance regression gate.
+#
+# This is the exact mirror of .github/workflows/perf-gate-ci.yml, kept at this path
+# because the brief names `scripts/perf-gate-ci.yml`. GitHub Actions only reads
+# workflows from .github/workflows/, so that copy is the one that runs. Keep both
+# files identical (they are byte-identical below this header).
+name: perf-gate
+
+on:
+  push:
+    branches: [main, "arena/**"]
+    paths:
+      - "src/**"
+      - "benches/**"
+      - "scripts/perf-gate.sh"
+      - ".github/workflows/perf-gate-ci.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "benches/**"
+      - "scripts/perf-gate.sh"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  perf-gate:
+    name: criterion regression gate (vulkan, gles3, gles2)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry + target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-perf-gate-${{ hashFiles('**/Cargo.toml', 'rust-toolchain.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-perf-gate-
+
+      - name: Install jq and cargo-criterion
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends jq
+          command -v cargo-criterion >/dev/null 2>&1 || cargo install cargo-criterion --locked
+
+      - name: Compile benches (catch breakage before spending bench time)
+        run: cargo bench --bench sinkon_benches --no-run
+
+      - name: Run the gate
+        id: gate
+        run: |
+          set +e
+          ./scripts/perf-gate.sh --strict --backends=vulkan,gles3,gles2
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit $status
+        env:
+          BASELINE: benches/baseline.json
+          CURRENT: benches/current.json
+          REPORT: benches/perf-gate-report.md
+          THRESHOLD: "5"
+
+      - name: Upload the gate report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sinkon-perf-gate-report
+          path: |
+            benches/perf-gate-report.md
+            benches/current.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Summarise
+        if: always()
+        run: |
+          if [ -f benches/perf-gate-report.md ]; then
+            cat benches/perf-gate-report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "no report produced (gate exit ${{ steps.gate.outputs.exit_code }})" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # Exit 1 (regression) and 2 (tooling error) both fail the job; the step above
+      # already propagates the code, this makes the intent explicit.
+      - name: Fail on regression or tooling error
+        if: always()
+        run: |
+          code="${{ steps.gate.outputs.exit_code }}"
+          if [ "$code" = "1" ] || [ "$code" = "2" ]; then
+            echo "sinkon perf gate failed with exit $code" >&2
+            exit 1
+          fi

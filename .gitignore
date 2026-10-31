@@ -1,0 +1,23 @@
+# Rust
+/target
+**/*.rs.bk
+
+# Gradle / Android
+android/.gradle
+android/build
+android/app/build
+android/local.properties
+android/.idea
+*.apk
+*.aab
+
+# Node (logo rendering helper)
+node_modules
+/logo/node_modules
+
+# Local perf artifacts
+benches/current.json
+benches/perf-gate-report.md
+
+# OS
+.DS_Store

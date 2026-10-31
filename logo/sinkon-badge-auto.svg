@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Sinkon (auto)">
+  <title>sinkon-badge-auto</title>
+  <desc>Auto backend marker: one disc split across both backend colours.</desc>
+  <defs><linearGradient id="sinkonArrow" x1="612" y1="774" x2="842" y2="774" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#0EA5E9"/></linearGradient></defs>
+  <rect width="128" height="128" rx="28" fill="#0B0F19"/>
+  <rect x="1" y="1" width="126" height="126" rx="27" fill="none" stroke="#1E293B" stroke-width="2"/>
+  <g transform="translate(54 46) scale(0.104) translate(-473 -498.5)" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M560 482 H294 A146 146 0 0 0 294 774 H616" stroke="#7C3AED" stroke-width="92"/><path d="M150 182 H606 A146 146 0 0 1 606 482 H500" stroke="#0B0F19" stroke-width="108"/><path d="M150 182 H606 A146 146 0 0 1 606 482 H500" stroke="#0EA5E9" stroke-width="92"/><path d="M612 702 L842 774 L612 846 Z" fill="url(#sinkonArrow)" stroke="none"/></g>
+  <circle cx="88" cy="88" r="29" fill="#0B0F19"/>
+  <path d="M88 63 A25 25 0 0 0 88 113 Z" fill="#0EA5E9"/><path d="M88 63 A25 25 0 0 1 88 113 Z" fill="#7C3AED"/><circle cx="88" cy="88" r="7.5" fill="#F1F5F9"/>
+</svg>

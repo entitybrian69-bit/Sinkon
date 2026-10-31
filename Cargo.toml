@@ -1,0 +1,56 @@
+[package]
+name = "sinkon"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.79"
+license = "LGPL-3.0-only"
+description = "Sinkon — a dual-backend (Vulkan + OpenGL ES) Minecraft Java Edition renderer for Android launcher forks"
+repository = "https://github.com/sinkon/sinkon"
+readme = "README.md"
+keywords = ["android", "vulkan", "opengl-es", "minecraft", "renderer"]
+categories = ["graphics", "game-engines"]
+
+[lib]
+name = "sinkon"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+# NOTE: no `dhat` dependency — `perf::alloc` installs a counting global allocator
+# (`alloc-gate`) that is cheaper, always available, and assertable in tests.
+# Counts allocations on the render thread and exposes them through
+# nativeGetPerfStats. Build with `--features alloc-gate` for perf gating.
+alloc-gate = []
+# Tracy profiler client; requires the Tracy server on the host side.
+tracy = []
+
+[dependencies]
+wgpu = { version = "22.1", features = ["spirv"] }
+pollster = "0.3"
+naga = { version = "22.1", default-features = false, features = ["glsl-in", "glsl-out", "spv-out", "wgsl-in"] }
+glow = "0.14"
+log = "0.4"
+once_cell = "1.19"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+crossbeam-queue = "0.3"
+num_cpus = "1.16"
+raw-window-handle = "0.6"
+libc = "0.2"
+tracing = "0.1"
+tracing-tracy = { version = "0.11", optional = true }
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21"
+android_logger = "0.14"
+
+[target.'cfg(not(target_os = "android"))'.dependencies]
+# Host builds (benches, unit tests) never touch the JVM or EGL; the modules
+# that require them are compiled out with cfg(target_os = "android").
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "sinkon_benches"
+harness = false

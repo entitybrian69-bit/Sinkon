@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Sinkon">
+  <title>sinkon-monochrome</title>
+  <desc>Single-colour Sinkon mark: S-shaped pipeline arrow.</desc>
+  <g transform="translate(512 512) scale(0.89) translate(-473 -498.5)" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M560 482 H294 A146 146 0 0 0 294 774 H616" stroke="#0B0F19" stroke-width="92"/><path d="M150 182 H606 A146 146 0 0 1 606 482 H500" stroke="#0B0F19" stroke-width="92"/><path d="M612 702 L842 774 L612 846 Z" fill="#0B0F19" stroke="none"/></g>
+</svg>

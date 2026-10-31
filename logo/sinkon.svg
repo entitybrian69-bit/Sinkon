@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Sinkon">
+  <title>Sinkon</title>
+  <desc>Dual-backend renderer mark: an S-shaped GPU pipeline arrow built from two interleaved ribbons.</desc>
+  <defs>
+    <linearGradient id="sinkonArrow" x1="612" y1="774" x2="844" y2="774" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#0EA5E9"/>
+    </linearGradient>
+    <linearGradient id="sinkonRim" x1="112" y1="112" x2="912" y2="912" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0EA5E9" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#7C3AED" stop-opacity="0.5"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="228" fill="#0B0F19"/>
+  <rect x="1.5" y="1.5" width="1021" height="1021" rx="226.5" fill="none" stroke="url(#sinkonRim)" stroke-width="3"/>
+  <g transform="translate(512 512) scale(0.89) translate(-473 -498.5)">
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <!-- OpenGL lane: left sweep + bottom run, passing under the centre -->
+      <path d="M560 482 H294 A146 146 0 0 0 294 774 H616" stroke="#7C3AED" stroke-width="92"/>
+      <!-- weave channel: same geometry in background colour so the over-strand
+           keeps a hairline of separation where it crosses the under-strand -->
+      <path d="M150 182 H606 A146 146 0 0 1 606 482 H500" stroke="#0B0F19" stroke-width="108"/>
+      <!-- Vulkan lane: input bar + right sweep, passing over the centre -->
+      <path d="M150 182 H606 A146 146 0 0 1 606 482 H500" stroke="#0EA5E9" stroke-width="92"/>
+      <!-- present arrow -->
+      <path d="M612 702 L842 774 L612 846 Z" fill="url(#sinkonArrow)" stroke="none"/>
+    </g>
+  </g>
+</svg>

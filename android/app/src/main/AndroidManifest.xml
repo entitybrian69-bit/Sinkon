@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sinkon renderer module manifest.
+
+  The module ships no components of its own: it contributes libsinkon.so, the
+  Kotlin JNI bindings, the capability probes and the launcher icon/badge assets
+  to whatever app merges it in.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature
+        android:name="android.hardware.vulkan.version"
+        android:required="false"
+        android:version="0x401000" />
+
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+
+</manifest>

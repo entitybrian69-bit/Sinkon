@@ -1,0 +1,28 @@
+# Android cross-compilation wiring for Sinkon.
+#
+# NDK r26+ ships a single unified clang per target triple
+# (e.g. aarch64-linux-android26-clang) instead of the legacy per-arch
+# toolchains, so we point `cc`/`c++` at the unified driver and let it pick
+# the right sysroot. Set SINKON_NDK (or ANDROID_NDK_HOME) before building.
+#
+#   export SINKON_NDK=$ANDROID_SDK_ROOT/ndk/26.3.11579264
+#   ./build-android.sh
+
+[target.aarch64-linux-android]
+rustflags = ["-C", "link-arg=-Wl,--build-id=sha1"]
+[target.armv7-linux-androideabi]
+rustflags = ["-C", "link-arg=-Wl,--build-id=sha1", "-C", "target-feature=+neon"]
+[target.x86_64-linux-android]
+rustflags = ["-C", "link-arg=-Wl,--build-id=sha1"]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+
+[profile.bench]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
